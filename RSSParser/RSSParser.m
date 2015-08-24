@@ -73,10 +73,6 @@
 #pragma mark -
 #pragma mark NSXMLParser delegate
 
-- (void) parserDidStartDocument:(NSXMLParser *)parser {
-    NSLog(@"parserDidStartDocument");
-}
-
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict {
     
     if ([elementName isEqualToString:@"item"] || [elementName isEqualToString:@"entry"]) {
@@ -144,10 +140,6 @@
 - (void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError {
     failblock(parseError);
     [parser abortParsing];
-}
-
-- (void) parserDidEndDocument:(NSXMLParser *)parser {
-    NSLog(@"parserDidEndDocument");
 }
 
 -(ContentType)determineMediaTypeFromAttributes:(NSDictionary *)dict

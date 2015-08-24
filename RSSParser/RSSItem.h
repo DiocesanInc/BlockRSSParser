@@ -11,10 +11,10 @@
 @interface RSSItem : NSObject <NSCoding>
 
 typedef NS_ENUM(NSInteger, ContentType) {
-    Video = 3,
-    Audio = 2,
-    Image = 1,
-    Unknown = 0
+    Unknown,
+    Image,
+    Audio,
+    Video
 };
 
 @property (strong,nonatomic) NSString *title;
