@@ -50,7 +50,7 @@
     
     [self setTitle:@"Loading..."];
     
-    NSURLRequest *req = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"http://streamspot.com/rss/mrss?id=99957fbf"]];
+    NSURLRequest *req = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"http://stthomasmoresrq.podbean.com/feed/"]];
     [RSSParser parseRSSFeedForRequest:req success:^(NSArray *feedItems) {
         [self setTitle:@"Blog"];
         [self setDataSource:feedItems];
@@ -115,6 +115,8 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:item.title];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:item.title];
+
+        NSLog(@"Media Type: %ld",(long)item.mediaType);
     }
     
     // Configure the cell...
@@ -123,10 +125,9 @@
     
     cell.textLabel.text = [item title];
     
-    if ([item thumbnail]) {
-        [cell.imageView setImageWithURL:item.thumbnail
+    if ([item mediaThumbnail]) {
+        [cell.imageView setImageWithURL:item.mediaThumbnail
                        placeholderImage:[UIImage imageNamed:@"placeholder.png"]];
-        
     }
     
     return cell;

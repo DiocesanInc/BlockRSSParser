@@ -159,7 +159,7 @@
 
 -(BOOL)dictionary:(NSDictionary *)dict containsMedia:(NSString *)string
 {
-    for (id key in @[@"type", @"medium"]) {
+    for (id key in @[@"mime_type", @"type", @"medium"]) {
         if ([dict objectForKey:key]) {
             if ([[dict objectForKey:key] rangeOfString:string options:NSCaseInsensitiveSearch].location != NSNotFound) {
                 return YES;
