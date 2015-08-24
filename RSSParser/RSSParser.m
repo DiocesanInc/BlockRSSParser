@@ -80,7 +80,21 @@
     }
     
     tmpString = [[NSMutableString alloc] init];
-    tmpAttrDict = attributeDict;
+
+    if (currentItem != nil) {
+        if (attributeDict != nil && attributeDict.count > 0) {
+            if ([elementName isEqualToString:@"media:thumbnail"]) {
+                NSString *url = [attributeDict objectForKey:@"url"];
+                if (url) {
+                    [currentItem setMediaThumbnail:[NSURL URLWithString:url]];
+                }
+            } else if ([elementName isEqualToString:@"media:content"]) {
+                [self initMedia:attributeDict];
+            } else if ([elementName isEqualToString:@"enclosure"] ) {
+                [self initMedia:attributeDict];
+            }
+        }
+    }
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName {
@@ -109,23 +123,8 @@
             [currentItem setAuthor:tmpString];
         } else if ([elementName isEqualToString:@"guid"]) {
             [currentItem setGuid:tmpString];
-        }
-
-        if (tmpAttrDict != nil) {
-            if ([elementName isEqualToString:@"media:thumbnail"]) {
-                NSString *url = [tmpAttrDict objectForKey:@"url"];
-                if (url) {
-                    [currentItem setThumbnail:[NSURL URLWithString:url]];
-                }
-            } else if ([elementName isEqualToString:@"media:content"]) {
-                [currentItem setMediaContent:tmpAttrDict];
-            // sometimes the URL is inside enclosure element, not in link. Reference: http://www.w3schools.com/rss/rss_tag_enclosure.asp
-            } else if ([elementName isEqualToString:@"enclosure"] ) {
-                NSString *url = [tmpAttrDict objectForKey:@"url"];
-                if(url) {
-                    [currentItem setLink:[NSURL URLWithString:url]];
-                }
-            }
+        } else if ([elementName isEqualToString:@"media:title"]) {
+            [currentItem setMediaTitle:tmpString];
         }
     }
     
@@ -141,6 +140,46 @@
 - (void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError {
     failblock(parseError);
     [parser abortParsing];
+}
+
+-(ContentType)determineMediaTypeFromAttributes:(NSDictionary *)dict
+{
+    if ([self dictionary:dict containsMedia:@"video"]) {
+        return Video;
+    }
+    else if ([self dictionary:dict containsMedia:@"audio"]) {
+        return Audio;
+    }
+    else if ([self dictionary:dict containsMedia:@"image"]) {
+        return Image;
+    }
+
+    return Unknown;
+}
+
+-(BOOL)dictionary:(NSDictionary *)dict containsMedia:(NSString *)string
+{
+    for (id key in @[@"type", @"medium"]) {
+        if ([dict objectForKey:key]) {
+            if ([[dict objectForKey:key] rangeOfString:string options:NSCaseInsensitiveSearch].location != NSNotFound) {
+                return YES;
+            }
+        }
+    }
+
+    return NO;
+}
+
+-(void)initMedia:(NSDictionary *)dict {
+    ContentType type = [self determineMediaTypeFromAttributes:dict];
+    if (type >= currentItem.mediaType) {
+        [currentItem setMediaType:type];
+        [currentItem setMediaURL:[dict objectForKey:@"url"]];
+    }
+
+    if (type == Image && ![currentItem mediaThumbnail]) {
+        [currentItem setMediaThumbnail:[NSURL URLWithString:[dict objectForKey:@"url"]]];
+    }
 }
 
 #pragma mark -
