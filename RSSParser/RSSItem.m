@@ -34,14 +34,14 @@
     return nil;
 }
 
--(contentType)getMediaType
+-(ContentType)getMediaType
 {
     if (self.mediaContent) {
         if ([self dictionary:self.mediaContent containsString:@"video" fromKeys:@[@"type", @"medium"]]) {
-            return video;
+            return Video;
         }
         else if ([self dictionary:self.mediaContent containsString:@"audio" fromKeys:@[@"type", @"medium"]]) {
-            return audio;
+            return Audio;
         }
     }
 
