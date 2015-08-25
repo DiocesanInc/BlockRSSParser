@@ -174,7 +174,7 @@
     ContentType type = [self determineMediaTypeFromAttributes:dict];
     if (type >= currentItem.mediaType) {
         [currentItem setMediaType:type];
-        [currentItem setMediaURL:[dict objectForKey:@"url"]];
+        [currentItem setMediaURL:[NSURL URLWithString:[dict objectForKey:@"url"]]];
     }
 
     if (type == Image && ![currentItem mediaThumbnail]) {

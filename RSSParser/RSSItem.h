@@ -28,7 +28,7 @@ typedef NS_ENUM(NSInteger, ContentType) {
 @property (strong,nonatomic) NSString *author;
 @property (strong,nonatomic) NSString *guid;
 
-@property (strong,nonatomic) NSString *mediaURL;
+@property (strong,nonatomic) NSURL *mediaURL;
 @property (strong,nonatomic) NSString *mediaTitle;
 @property (strong,nonatomic) NSURL *mediaThumbnail;
 @property (nonatomic, assign) ContentType mediaType;
