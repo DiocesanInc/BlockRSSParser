@@ -84,14 +84,15 @@
     if (currentItem != nil) {
         if (attributeDict != nil && attributeDict.count > 0) {
             if ([elementName isEqualToString:@"media:thumbnail"]) {
-                NSString *url = [attributeDict objectForKey:@"url"];
-                if (url) {
-                    [currentItem setMediaThumbnail:[NSURL URLWithString:url]];
-                }
+                [currentItem setMediaThumbnail:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
             } else if ([elementName isEqualToString:@"media:content"]) {
                 [self initMedia:attributeDict];
             } else if ([elementName isEqualToString:@"enclosure"] ) {
                 [self initMedia:attributeDict];
+            } else if (([elementName isEqualToString:@"media:player"])) {
+                if (currentItem.mediaType == Unknown) {
+                    [currentItem setMediaURL:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
+                }
             }
         }
     }
@@ -174,11 +175,20 @@
     ContentType type = [self determineMediaTypeFromAttributes:dict];
     if (type >= currentItem.mediaType) {
         [currentItem setMediaType:type];
-        [currentItem setMediaURL:[NSURL URLWithString:[dict objectForKey:@"url"]]];
+        [currentItem setMediaURL:[self getNSURLFromString:[dict objectForKey:@"url"]]];
     }
 
     if (type == Image && ![currentItem mediaThumbnail]) {
-        [currentItem setMediaThumbnail:[NSURL URLWithString:[dict objectForKey:@"url"]]];
+        [currentItem setMediaThumbnail:[self getNSURLFromString:[dict objectForKey:@"url"]]];
+    }
+}
+
+-(NSURL *)getNSURLFromString:(NSString *)string {
+    if (string) {
+        return [NSURL URLWithString:string];
+    }
+    else {
+        return nil;
     }
 }
 
