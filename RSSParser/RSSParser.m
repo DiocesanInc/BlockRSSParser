@@ -90,7 +90,7 @@
             } else if ([elementName isEqualToString:@"enclosure"] ) {
                 [self initMedia:attributeDict];
             } else if (([elementName isEqualToString:@"media:player"])) {
-                if (currentItem.mediaType == Unknown) {
+                if (currentItem.mediaType != Audio || currentItem.mediaType != Video) {
                     [currentItem setMediaURL:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
                 }
             }
