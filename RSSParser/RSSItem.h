@@ -12,6 +12,7 @@
 
 typedef NS_ENUM(NSInteger, ContentType) {
     Unknown,
+    Flash,
     Image,
     Audio,
     Video
