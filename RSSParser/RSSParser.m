@@ -93,6 +93,8 @@
                 if (currentItem.mediaType != Audio || currentItem.mediaType != Video) {
                     [currentItem setMediaURL:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
                 }
+            } else if (([elementName isEqualToString:@"link"])) {
+                [currentItem setLink:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
             }
         }
     }
@@ -111,7 +113,9 @@
         } else if ([elementName isEqualToString:@"content:encoded"] || [elementName isEqualToString:@"content"]) {
             [currentItem setContent:tmpString];
         } else if ([elementName isEqualToString:@"link"]) {
-            [currentItem setLink:[NSURL URLWithString:tmpString]];
+            if (![currentItem link] || ![[[currentItem link] absoluteString] length]) {
+                [currentItem setLink:[NSURL URLWithString:tmpString]];
+            }
         } else if ([elementName isEqualToString:@"comments"]) {
             [currentItem setCommentsLink:[NSURL URLWithString:tmpString]];
         } else if ([elementName isEqualToString:@"wfw:commentRss"]) {
@@ -153,6 +157,9 @@
     }
     else if ([self dictionary:dict containsMedia:@"image"]) {
         return Image;
+    }
+    else if ([self dictionary:dict containsMedia:@"flash"]) {
+        return Flash;
     }
 
     return Unknown;
