@@ -26,17 +26,19 @@
     self = [super init];
     if (self) {
         items = [NSMutableArray new];
-        
+
+        NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"];
+
         _formatter = [NSDateFormatter new];
-        [_formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
+        [_formatter setLocale:locale];
         [_formatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss Z"];
 
         _formatterWithTimeZoneAbbreviation = [NSDateFormatter new];
-        [_formatterWithTimeZoneAbbreviation setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
+        [_formatterWithTimeZoneAbbreviation setLocale:locale];
         [_formatterWithTimeZoneAbbreviation setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss V"];
 
         _ISO8601formatter = [NSDateFormatter new];
-        [_ISO8601formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
+        [_ISO8601formatter setLocale:locale];
         [_ISO8601formatter setDateFormat: @"yyyy-MM-dd'T'HH:mm:ssZ"];
     }
     return self;
