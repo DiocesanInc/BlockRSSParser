@@ -130,6 +130,10 @@
             [currentItem setGuid:tmpString];
         } else if ([elementName isEqualToString:@"media:title"]) {
             [currentItem setMediaTitle:tmpString];
+        } else if ([elementName isEqualToString:@"media:description"]) {
+            if (![currentItem itemDescription] || ![[currentItem itemDescription] length]) {
+                [currentItem setItemDescription:tmpString];
+            }
         }
     }
     
