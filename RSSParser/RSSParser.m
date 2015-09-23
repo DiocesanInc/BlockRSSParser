@@ -14,6 +14,8 @@
 @interface RSSParser()
 
 @property (nonatomic) NSDateFormatter *formatter;
+@property (nonatomic) NSDateFormatter *ISO8601formatter;
+@property (nonatomic) NSDateFormatter *formatterWithTimeZoneAbbreviation;
 
 @end
 
@@ -23,11 +25,21 @@
 - (id)init {
     self = [super init];
     if (self) {
-        items = [[NSMutableArray alloc] init];
-        
-        _formatter = [[NSDateFormatter alloc] init];
-        [_formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
+        items = [NSMutableArray new];
+
+        NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"];
+
+        _formatter = [NSDateFormatter new];
+        [_formatter setLocale:locale];
         [_formatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss Z"];
+
+        _formatterWithTimeZoneAbbreviation = [NSDateFormatter new];
+        [_formatterWithTimeZoneAbbreviation setLocale:locale];
+        [_formatterWithTimeZoneAbbreviation setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss V"];
+
+        _ISO8601formatter = [NSDateFormatter new];
+        [_ISO8601formatter setLocale:locale];
+        [_ISO8601formatter setDateFormat: @"yyyy-MM-dd'T'HH:mm:ssZ"];
     }
     return self;
 }
@@ -122,8 +134,10 @@
             [currentItem setCommentsFeed:[NSURL URLWithString:tmpString]];
         } else if ([elementName isEqualToString:@"slash:comments"]) {
             [currentItem setCommentsCount:[NSNumber numberWithInt:[tmpString intValue]]];
-        } else if ([elementName isEqualToString:@"pubDate"]) {
-            [currentItem setPubDate:[_formatter dateFromString:tmpString]];
+        } else if ([elementName isEqualToString:@"pubDate"] || [elementName isEqualToString:@"published"]) {
+            if (![currentItem pubDate]) {
+                [currentItem setPubDate:[self getDateFromString:tmpString]];
+            }
         } else if ([elementName isEqualToString:@"dc:creator"]) {
             [currentItem setAuthor:tmpString];
         } else if ([elementName isEqualToString:@"guid"]) {
@@ -197,6 +211,27 @@
     else {
         return nil;
     }
+}
+
+-(NSDate *)getDateFromString:(NSString *)string {
+    NSDate *date = nil;
+    if (string) {
+        date = [self.formatter dateFromString:string];
+        if (!date) {
+            date = [self.ISO8601formatter dateFromString:string];
+        }
+        if (!date) {
+            NSRange range = [string rangeOfString:@" " options:NSBackwardsSearch];
+            NSString *threeLetterZone = [string substringFromIndex:range.location+1];
+            NSTimeZone *timeZone = [NSTimeZone timeZoneWithAbbreviation:threeLetterZone];
+            if (timeZone)
+            {
+                NSString *gmtTime = [string stringByReplacingOccurrencesOfString:threeLetterZone withString:@"GMT"];
+                date = [[self.formatterWithTimeZoneAbbreviation dateFromString:gmtTime] dateByAddingTimeInterval:-timeZone.secondsFromGMT];
+            }
+        }
+    }
+    return date;
 }
 
 #pragma mark -
