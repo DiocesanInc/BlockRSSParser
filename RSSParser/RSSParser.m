@@ -216,9 +216,9 @@
 -(NSDate *)getDateFromString:(NSString *)string {
     NSDate *date = nil;
     if (string) {
-        date = [_formatter dateFromString:string];
+        date = [self.formatter dateFromString:string];
         if (!date) {
-            date = [_ISO8601formatter dateFromString:string];
+            date = [self.ISO8601formatter dateFromString:string];
         }
         if (!date) {
             NSRange range = [string rangeOfString:@" " options:NSBackwardsSearch];
@@ -227,7 +227,7 @@
             if (timeZone)
             {
                 NSString *gmtTime = [string stringByReplacingOccurrencesOfString:threeLetterZone withString:@"GMT"];
-                date = [[_formatterWithTimeZoneAbbreviation dateFromString:gmtTime] dateByAddingTimeInterval:-timeZone.secondsFromGMT];
+                date = [[self.formatterWithTimeZoneAbbreviation dateFromString:gmtTime] dateByAddingTimeInterval:-timeZone.secondsFromGMT];
             }
         }
     }
