@@ -14,6 +14,7 @@
 @interface RSSParser()
 
 @property (nonatomic) NSDateFormatter *formatter;
+@property (nonatomic) NSDateFormatter *ISO8601formatter;
 
 @end
 
@@ -23,11 +24,15 @@
 - (id)init {
     self = [super init];
     if (self) {
-        items = [[NSMutableArray alloc] init];
+        items = [NSMutableArray new];
         
         _formatter = [[NSDateFormatter alloc] init];
         [_formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
         [_formatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss Z"];
+
+        _ISO8601formatter = [NSDateFormatter new];
+        [_ISO8601formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
+        [_ISO8601formatter setDateFormat: @"yyyy-MM-dd'T'HH:mm:ssZ"];
     }
     return self;
 }
@@ -122,8 +127,10 @@
             [currentItem setCommentsFeed:[NSURL URLWithString:tmpString]];
         } else if ([elementName isEqualToString:@"slash:comments"]) {
             [currentItem setCommentsCount:[NSNumber numberWithInt:[tmpString intValue]]];
-        } else if ([elementName isEqualToString:@"pubDate"]) {
-            [currentItem setPubDate:[_formatter dateFromString:tmpString]];
+        } else if ([elementName isEqualToString:@"pubDate"] || [elementName isEqualToString:@"published"]) {
+            if (![currentItem pubDate]) {
+                [currentItem setPubDate:[self getDateFromString:tmpString]];
+            }
         } else if ([elementName isEqualToString:@"dc:creator"]) {
             [currentItem setAuthor:tmpString];
         } else if ([elementName isEqualToString:@"guid"]) {
@@ -197,6 +204,17 @@
     else {
         return nil;
     }
+}
+
+-(NSDate *)getDateFromString:(NSString *)string {
+    NSDate *date = nil;
+    if (string) {
+        date = [_formatter dateFromString:string];
+        if (!date) {
+            date = [_ISO8601formatter dateFromString:string];
+        }
+    }
+    return date;
 }
 
 #pragma mark -
