@@ -15,6 +15,7 @@
 
 @property (nonatomic) NSDateFormatter *formatter;
 @property (nonatomic) NSDateFormatter *ISO8601formatter;
+@property (nonatomic) NSDateFormatter *formatterWithTimeZoneAbbreviation;
 
 @end
 
@@ -26,9 +27,13 @@
     if (self) {
         items = [NSMutableArray new];
         
-        _formatter = [[NSDateFormatter alloc] init];
+        _formatter = [NSDateFormatter new];
         [_formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
         [_formatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss Z"];
+
+        _formatterWithTimeZoneAbbreviation = [NSDateFormatter new];
+        [_formatterWithTimeZoneAbbreviation setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
+        [_formatterWithTimeZoneAbbreviation setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss V"];
 
         _ISO8601formatter = [NSDateFormatter new];
         [_ISO8601formatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"]];
@@ -212,6 +217,16 @@
         date = [_formatter dateFromString:string];
         if (!date) {
             date = [_ISO8601formatter dateFromString:string];
+        }
+        if (!date) {
+            NSRange range = [string rangeOfString:@" " options:NSBackwardsSearch];
+            NSString *threeLetterZone = [string substringFromIndex:range.location+1];
+            NSTimeZone *timeZone = [NSTimeZone timeZoneWithAbbreviation:threeLetterZone];
+            if (timeZone)
+            {
+                NSString *gmtTime = [string stringByReplacingOccurrencesOfString:threeLetterZone withString:@"GMT"];
+                date = [[_formatterWithTimeZoneAbbreviation dateFromString:gmtTime] dateByAddingTimeInterval:-timeZone.secondsFromGMT];
+            }
         }
     }
     return date;
