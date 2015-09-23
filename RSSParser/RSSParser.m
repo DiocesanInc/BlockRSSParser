@@ -132,7 +132,7 @@
             [currentItem setGuid:tmpString];
         } else if ([elementName isEqualToString:@"media:title"]) {
             [currentItem setMediaTitle:tmpString];
-        } 
+        }
     }
     
     if ([elementName isEqualToString:@"rss"] || [elementName isEqualToString:@"feed"]) {
