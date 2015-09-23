@@ -120,8 +120,10 @@
         
         if ([elementName isEqualToString:@"title"]) {
             [currentItem setTitle:tmpString];
-        } else if ([elementName isEqualToString:@"description"]) {
-            [currentItem setItemDescription:tmpString];
+        } else if ([elementName isEqualToString:@"description"] || [elementName isEqualToString:@"media:description"]) {
+            if (![currentItem itemDescription] || ![[currentItem itemDescription] length]) {
+                [currentItem setItemDescription:tmpString];
+            }
         } else if ([elementName isEqualToString:@"content:encoded"] || [elementName isEqualToString:@"content"]) {
             [currentItem setContent:tmpString];
         } else if ([elementName isEqualToString:@"link"]) {
