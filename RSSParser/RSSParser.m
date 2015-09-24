@@ -10,12 +10,9 @@
 
 #import "AFHTTPRequestOperation.h"
 #import "AFURLResponseSerialization.h"
+#import "NSDate+InternetDateTime.h"
 
 @interface RSSParser()
-
-@property (nonatomic) NSDateFormatter *formatter;
-@property (nonatomic) NSDateFormatter *ISO8601formatter;
-@property (nonatomic) NSDateFormatter *formatterWithTimeZoneAbbreviation;
 
 @end
 
@@ -26,20 +23,6 @@
     self = [super init];
     if (self) {
         items = [NSMutableArray new];
-
-        NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_EN"];
-
-        _formatter = [NSDateFormatter new];
-        [_formatter setLocale:locale];
-        [_formatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss Z"];
-
-        _formatterWithTimeZoneAbbreviation = [NSDateFormatter new];
-        [_formatterWithTimeZoneAbbreviation setLocale:locale];
-        [_formatterWithTimeZoneAbbreviation setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss V"];
-
-        _ISO8601formatter = [NSDateFormatter new];
-        [_ISO8601formatter setLocale:locale];
-        [_ISO8601formatter setDateFormat: @"yyyy-MM-dd'T'HH:mm:ssZ"];
     }
     return self;
 }
@@ -217,22 +200,7 @@
 
 -(NSDate *)getDateFromString:(NSString *)string {
     NSDate *date = nil;
-    if (string) {
-        date = [self.formatter dateFromString:string];
-        if (!date) {
-            date = [self.ISO8601formatter dateFromString:string];
-        }
-        if (!date) {
-            NSRange range = [string rangeOfString:@" " options:NSBackwardsSearch];
-            NSString *threeLetterZone = [string substringFromIndex:range.location+1];
-            NSTimeZone *timeZone = [NSTimeZone timeZoneWithAbbreviation:threeLetterZone];
-            if (timeZone)
-            {
-                NSString *gmtTime = [string stringByReplacingOccurrencesOfString:threeLetterZone withString:@"GMT"];
-                date = [[self.formatterWithTimeZoneAbbreviation dateFromString:gmtTime] dateByAddingTimeInterval:-timeZone.secondsFromGMT];
-            }
-        }
-    }
+    date = [NSDate dateFromInternetDateTimeString:string formatHint:DateFormatHintNone];
     return date;
 }
 

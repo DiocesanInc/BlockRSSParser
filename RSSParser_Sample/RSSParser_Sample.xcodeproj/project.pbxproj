@@ -28,6 +28,7 @@
 		118543F014E9ACD2001761CB /* ArticlesListeTableViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 118543EE14E9ACD2001761CB /* ArticlesListeTableViewController.xib */; };
 		118543F414E9AFE0001761CB /* ArticleDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 118543F214E9AFE0001761CB /* ArticleDetailViewController.m */; };
 		118543F514E9AFE0001761CB /* ArticleDetailViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 118543F314E9AFE0001761CB /* ArticleDetailViewController.xib */; };
+		1528782A1BB45C980084555C /* NSDate+InternetDateTime.m in Sources */ = {isa = PBXBuildFile; fileRef = 152878291BB45C980084555C /* NSDate+InternetDateTime.m */; };
 		38D21F55D00F4BA7A4D6010A /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2491A17B4E26435E940E1404 /* libPods.a */; };
 		C6E456351B014048A1E4434B /* libPods-Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5D50FCF4044DC3865DCB53 /* libPods-Tests.a */; };
 		DA0619AD16A3127300DB4BB8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA0619AC16A3127300DB4BB8 /* SystemConfiguration.framework */; };
@@ -78,6 +79,8 @@
 		118543F114E9AFE0001761CB /* ArticleDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArticleDetailViewController.h; sourceTree = "<group>"; };
 		118543F214E9AFE0001761CB /* ArticleDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArticleDetailViewController.m; sourceTree = "<group>"; };
 		118543F314E9AFE0001761CB /* ArticleDetailViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ArticleDetailViewController.xib; sourceTree = "<group>"; };
+		152878281BB45C980084555C /* NSDate+InternetDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+InternetDateTime.h"; sourceTree = "<group>"; };
+		152878291BB45C980084555C /* NSDate+InternetDateTime.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+InternetDateTime.m"; sourceTree = "<group>"; };
 		2491A17B4E26435E940E1404 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A5D50FCF4044DC3865DCB53 /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		876783A82877C73770581618 /* Pods-Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -220,6 +223,8 @@
 				118543C314E9AC20001761CB /* RSSItem.m */,
 				118543C414E9AC20001761CB /* RSSParser.h */,
 				118543C514E9AC20001761CB /* RSSParser.m */,
+				152878281BB45C980084555C /* NSDate+InternetDateTime.h */,
+				152878291BB45C980084555C /* NSDate+InternetDateTime.m */,
 			);
 			name = RSSParser;
 			path = ../RSSParser;
@@ -405,6 +410,7 @@
 				110A8A9414E9A30C0013AC07 /* main.m in Sources */,
 				110A8A9814E9A30C0013AC07 /* AppDelegate.m in Sources */,
 				118543C614E9AC20001761CB /* RSSItem.m in Sources */,
+				1528782A1BB45C980084555C /* NSDate+InternetDateTime.m in Sources */,
 				118543C714E9AC20001761CB /* RSSParser.m in Sources */,
 				118543EF14E9ACD2001761CB /* ArticlesListeTableViewController.m in Sources */,
 				118543F414E9AFE0001761CB /* ArticleDetailViewController.m in Sources */,
