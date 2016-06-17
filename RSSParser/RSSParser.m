@@ -49,6 +49,7 @@
     failblock = [failure copy];
 
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    manager.responseSerializer = [AFXMLParserResponseSerializer new];
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/xml", @"text/xml",@"application/rss+xml", @"application/atom+xml", nil];
 
     [manager GET:url parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
