@@ -34,6 +34,8 @@ typedef NS_ENUM(NSInteger, ContentType) {
 @property (strong,nonatomic) NSURL *mediaThumbnail;
 @property (nonatomic, assign) ContentType mediaType;
 
+@property (strong,nonatomic) NSURL *itunesImageURL;
+
 -(NSArray *)imagesFromItemDescription;
 -(NSArray *)imagesFromContent;
 

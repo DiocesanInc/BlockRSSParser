@@ -90,6 +90,8 @@
                 }
             } else if (([elementName isEqualToString:@"link"])) {
                 [currentItem setLink:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
+            } else if (([elementName isEqualToString:@"itunes:image"])) {
+                [currentItem setItunesImageURL:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
             }
         }
     }
