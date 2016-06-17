@@ -7,8 +7,7 @@
 //
 
 #import "RSSParser.h"
-
-#import "AFHTTPRequestOperation.h"
+#import "AFHTTPRequestOperationManager.h"
 #import "AFURLResponseSerialization.h"
 #import "NSDate+InternetDateTime.h"
 
@@ -31,38 +30,34 @@
 
 #pragma mark parser
 
-+ (void)parseRSSFeedForRequest:(NSURLRequest *)urlRequest
-                       success:(void (^)(NSArray *feedItems))success
-                       failure:(void (^)(NSError *error))failure
++ (void)parseRSSFeedForURL:(NSString *)url
+            withParameters:(id)parameters
+                   success:(void (^)(NSArray *feedItems))success
+                   failure:(void (^)(NSError *error))failure
 {
     RSSParser *parser = [[RSSParser alloc] init];
-    [parser parseRSSFeedForRequest:urlRequest success:success failure:failure];
+    [parser parseRSSFeedForURL:url withParameters:parameters success:success failure:failure];
 }
 
 
-- (void)parseRSSFeedForRequest:(NSURLRequest *)urlRequest
-                       success:(void (^)(NSArray *feedItems))success
-                       failure:(void (^)(NSError *error))failure
+- (void)parseRSSFeedForURL:(NSString *)url
+            withParameters:(id)parameters
+                   success:(void (^)(NSArray *feedItems))success
+                   failure:(void (^)(NSError *error))failure
 {
-    
-    block = [success copy];
-    
-    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:urlRequest];
-    
-    operation.responseSerializer = [[AFXMLParserResponseSerializer alloc] init];
-    operation.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/xml", @"text/xml",@"application/rss+xml", @"application/atom+xml", nil];
-    
-    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-        failblock = [failure copy];
+    successblock = [success copy];
+    failblock = [failure copy];
+
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    manager.responseSerializer = [AFXMLParserResponseSerializer new];
+    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/xml", @"text/xml",@"application/rss+xml", @"application/atom+xml", nil];
+
+    [manager GET:url parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [(NSXMLParser *)responseObject setDelegate:self];
         [(NSXMLParser *)responseObject parse];
-    }
-                                     failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                                         failure(error);
-                                     }];
-    
-    [operation start];
-    
+    } failure:^(AFHTTPRequestOperation * _Nonnull operation, NSError * _Nonnull error) {
+        failblock(error);
+    }];
 }
 
 #pragma mark -
@@ -135,7 +130,7 @@
     }
     
     if ([elementName isEqualToString:@"rss"] || [elementName isEqualToString:@"feed"]) {
-        block(items);
+        successblock(items);
     }
 }
 

@@ -13,19 +13,18 @@
     RSSItem *currentItem;
     NSMutableArray *items;
     NSMutableString *tmpString;
-    void (^block)(NSArray *feedItems);
+    void (^successblock)(NSArray *feedItems);
     void (^failblock)(NSError *error);
 }
 
++ (void)parseRSSFeedForURL:(NSString *)url
+            withParameters:(id)parameters
+                   success:(void (^)(NSArray *feedItems))success
+                   failure:(void (^)(NSError *error))failure;
 
-
-+ (void)parseRSSFeedForRequest:(NSURLRequest *)urlRequest
-                       success:(void (^)(NSArray *feedItems))success
-                       failure:(void (^)(NSError *error))failure;
-
-- (void)parseRSSFeedForRequest:(NSURLRequest *)urlRequest
-                       success:(void (^)(NSArray *feedItems))success
-                       failure:(void (^)(NSError *error))failure;
-
+- (void)parseRSSFeedForURL:(NSString *)url
+            withParameters:(id)parameters
+                   success:(void (^)(NSArray *feedItems))success
+                   failure:(void (^)(NSError *error))failure;
 
 @end
