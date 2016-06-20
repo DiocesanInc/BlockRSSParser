@@ -7,21 +7,34 @@
 //
 
 #import "RSSParser.h"
-#import "AFHTTPRequestOperationManager.h"
-#import "AFURLResponseSerialization.h"
 #import "NSDate+InternetDateTime.h"
 
 @interface RSSParser()
+
+// These properties are temporary place holders for content being parsed
+@property (strong, nonatomic) RSSItem *currentParsedItem;
+@property (strong, nonatomic) NSMutableString *currentParsedText;
+
+// Contains the result of the feed being parsed
+@property (strong, nonatomic) NSMutableArray<RSSItem *> *feedItems;
+
+- (void)parseRSSFeedFromXML:(NSXMLParser *)data
+                    success:(void (^)(NSArray *feedItems))success
+                    failure:(void (^)(NSError *error))failure;
 
 @end
 
 @implementation RSSParser
 
++ (NSSet *)acceptableContentTypes {
+    return [NSSet setWithObjects:@"application/xml", @"text/xml",@"application/rss+xml", @"application/atom+xml", nil];
+}
+
 #pragma mark lifecycle
 - (id)init {
     self = [super init];
     if (self) {
-        items = [NSMutableArray new];
+        self.feedItems = [NSMutableArray new];
     }
     return self;
 }
@@ -30,116 +43,112 @@
 
 #pragma mark parser
 
-+ (void)parseRSSFeedForURL:(NSString *)url
-            withParameters:(id)parameters
-                   success:(void (^)(NSArray *feedItems))success
-                   failure:(void (^)(NSError *error))failure
++ (void)parseRSSFeedFromXML:(NSXMLParser *)data
+                    success:(void (^)(NSArray *feedItems))success
+                    failure:(void (^)(NSError *error))failure
 {
-    RSSParser *parser = [[RSSParser alloc] init];
-    [parser parseRSSFeedForURL:url withParameters:parameters success:success failure:failure];
+    RSSParser *parser = [RSSParser new];
+    [parser parseRSSFeedFromXML:data success:success failure:failure];
 }
 
 
-- (void)parseRSSFeedForURL:(NSString *)url
-            withParameters:(id)parameters
+- (void)parseRSSFeedFromXML:(NSXMLParser *)data
                    success:(void (^)(NSArray *feedItems))success
                    failure:(void (^)(NSError *error))failure
 {
-    successblock = [success copy];
-    failblock = [failure copy];
+    self.successBlock = [success copy];
+    self.failBlock = [failure copy];
 
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    manager.responseSerializer = [AFXMLParserResponseSerializer new];
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/xml", @"text/xml",@"application/rss+xml", @"application/atom+xml", nil];
-
-    [manager GET:url parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [(NSXMLParser *)responseObject setDelegate:self];
-        [(NSXMLParser *)responseObject parse];
-    } failure:^(AFHTTPRequestOperation * _Nonnull operation, NSError * _Nonnull error) {
-        failblock(error);
-    }];
+    data.delegate = self;
+    [data parse];
 }
 
-#pragma mark -
 #pragma mark NSXMLParser delegate
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict {
-    
-    if ([elementName isEqualToString:@"item"] || [elementName isEqualToString:@"entry"]) {
-        currentItem = [[RSSItem alloc] init];
-    }
-    
-    tmpString = [[NSMutableString alloc] init];
 
-    if (currentItem != nil) {
+    // If we have found an <item> or <entry> tag, create a new RSSItem so that we can start saving data into it
+    if ([elementName isEqualToString:@"item"] || [elementName isEqualToString:@"entry"]) {
+        self.currentParsedItem = [RSSItem new];
+    }
+
+    // This is a new element, so we need to start saving parsed text for this element
+    self.currentParsedText = [NSMutableString new];
+
+    // Parse the attributes within a tag (e.g. <tag attribute="value"></tag>)
+    if (self.currentParsedItem != nil) {
         if (attributeDict != nil && attributeDict.count > 0) {
             if ([elementName isEqualToString:@"media:thumbnail"]) {
-                [currentItem setMediaThumbnail:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
+                [self.currentParsedItem setMediaThumbnail:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
             } else if ([elementName isEqualToString:@"media:content"]) {
-                [self initMedia:attributeDict];
+                [self initMedia:attributeDict forItem:self.currentParsedItem];
             } else if ([elementName isEqualToString:@"enclosure"] ) {
-                [self initMedia:attributeDict];
+                [self initMedia:attributeDict forItem:self.currentParsedItem];
             } else if (([elementName isEqualToString:@"media:player"])) {
-                if (currentItem.mediaType != Audio || currentItem.mediaType != Video) {
-                    [currentItem setMediaURL:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
+                if (self.currentParsedItem.mediaType != Audio || self.currentParsedItem.mediaType != Video) {
+                    [self.currentParsedItem setMediaURL:[self getNSURLFromString:[attributeDict objectForKey:@"url"]]];
                 }
             } else if (([elementName isEqualToString:@"link"])) {
-                [currentItem setLink:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
+                [self.currentParsedItem setLink:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
             } else if (([elementName isEqualToString:@"itunes:image"])) {
-                [currentItem setItunesImageURL:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
+                [self.currentParsedItem setItunesImageURL:[self getNSURLFromString:[attributeDict objectForKey:@"href"]]];
             }
         }
     }
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName {
-    if ([elementName isEqualToString:@"item"] || [elementName isEqualToString:@"entry"]) {
-        [items addObject:currentItem];
-    }
-    if (currentItem != nil && tmpString != nil) {
-        
+
+    // Parse the value between an element tag (e.g. <tag>some value here</tag>)
+    if (self.currentParsedItem && self.currentParsedText) {
         if ([elementName isEqualToString:@"title"]) {
-            [currentItem setTitle:tmpString];
+            [self.currentParsedItem setTitle:self.currentParsedText];
         } else if ([elementName isEqualToString:@"description"] || [elementName isEqualToString:@"media:description"]) {
-            if (![currentItem itemDescription] || ![[currentItem itemDescription] length]) {
-                [currentItem setItemDescription:tmpString];
+            if (![self.currentParsedItem itemDescription] || ![[self.currentParsedItem itemDescription] length]) {
+                [self.currentParsedItem setItemDescription:self.currentParsedText];
             }
         } else if ([elementName isEqualToString:@"content:encoded"] || [elementName isEqualToString:@"content"]) {
-            [currentItem setContent:tmpString];
+            [self.currentParsedItem setContent:self.currentParsedText];
         } else if ([elementName isEqualToString:@"link"]) {
-            if (![currentItem link] || ![[[currentItem link] absoluteString] length]) {
-                [currentItem setLink:[NSURL URLWithString:tmpString]];
+            if (![self.currentParsedItem link] || ![[[self.currentParsedItem link] absoluteString] length]) {
+                [self.currentParsedItem setLink:[NSURL URLWithString:self.currentParsedText]];
             }
         } else if ([elementName isEqualToString:@"comments"]) {
-            [currentItem setCommentsLink:[NSURL URLWithString:tmpString]];
+            [self.currentParsedItem setCommentsLink:[NSURL URLWithString:self.currentParsedText]];
         } else if ([elementName isEqualToString:@"wfw:commentRss"]) {
-            [currentItem setCommentsFeed:[NSURL URLWithString:tmpString]];
+            [self.currentParsedItem setCommentsFeed:[NSURL URLWithString:self.currentParsedText]];
         } else if ([elementName isEqualToString:@"slash:comments"]) {
-            [currentItem setCommentsCount:[NSNumber numberWithInt:[tmpString intValue]]];
+            [self.currentParsedItem setCommentsCount:[NSNumber numberWithInt:[self.currentParsedText intValue]]];
         } else if ([elementName isEqualToString:@"pubDate"] || [elementName isEqualToString:@"published"]) {
-            if (![currentItem pubDate]) {
-                [currentItem setPubDate:[self getDateFromString:tmpString]];
+            if (![self.currentParsedItem pubDate]) {
+                [self.currentParsedItem setPubDate:[self getDateFromString:self.currentParsedText]];
             }
         } else if ([elementName isEqualToString:@"dc:creator"]) {
-            [currentItem setAuthor:tmpString];
+            [self.currentParsedItem setAuthor:self.currentParsedText];
         } else if ([elementName isEqualToString:@"guid"]) {
-            [currentItem setGuid:tmpString];
+            [self.currentParsedItem setGuid:self.currentParsedText];
         } else if ([elementName isEqualToString:@"media:title"]) {
-            [currentItem setMediaTitle:tmpString];
+            [self.currentParsedItem setMediaTitle:self.currentParsedText];
         }
     }
-    
+
+    if ([elementName isEqualToString:@"item"] || [elementName isEqualToString:@"entry"]) {
+        [self.feedItems addObject:self.currentParsedItem];
+        self.currentParsedItem = nil;
+    }
+
+    // If we have reached the ending tag for the feed, return the result
     if ([elementName isEqualToString:@"rss"] || [elementName isEqualToString:@"feed"]) {
-        successblock(items);
+        self.successBlock(self.feedItems);
     }
 }
 
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string {
-    [tmpString appendString:string];
+    [self.currentParsedText appendString:string];
 }
 
 - (void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError {
-    failblock(parseError);
+    self.failBlock(parseError);
     [parser abortParsing];
 }
 
@@ -174,15 +183,15 @@
     return NO;
 }
 
--(void)initMedia:(NSDictionary *)dict {
+-(void)initMedia:(NSDictionary *)dict forItem:(RSSItem *)item {
     ContentType type = [self determineMediaTypeFromAttributes:dict];
-    if (type >= currentItem.mediaType) {
-        [currentItem setMediaType:type];
-        [currentItem setMediaURL:[self getNSURLFromString:[dict objectForKey:@"url"]]];
+    if (type >= item.mediaType) {
+        [item setMediaType:type];
+        [item setMediaURL:[self getNSURLFromString:[dict objectForKey:@"url"]]];
     }
 
-    if (type == Image && ![currentItem mediaThumbnail]) {
-        [currentItem setMediaThumbnail:[self getNSURLFromString:[dict objectForKey:@"url"]]];
+    if (type == Image && ![item mediaThumbnail]) {
+        [item setMediaThumbnail:[self getNSURLFromString:[dict objectForKey:@"url"]]];
     }
 }
 

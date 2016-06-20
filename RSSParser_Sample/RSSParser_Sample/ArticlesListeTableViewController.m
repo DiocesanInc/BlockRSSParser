@@ -7,6 +7,7 @@
 //
 
 #import "ArticlesListeTableViewController.h"
+#import "AFHTTPRequestOperationManager.h"
 
 #import "RSSParser.h"
 #import "RSSItem.h"
@@ -49,16 +50,33 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
     [self setTitle:@"Loading..."];
-    
-    NSURLRequest *req = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"http://stthomasmoresrq.podbean.com/feed/"]];
-    [RSSParser parseRSSFeedForRequest:req success:^(NSArray *feedItems) {
-        [self setTitle:@"Blog"];
-        [self setDataSource:feedItems];
-        [self.tableView reloadData];
-    } failure:^(NSError *error) {
-        [self setTitle:@"Error"];
-        NSLog(@"Error: %@",error);
+
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    manager.responseSerializer = [AFXMLParserResponseSerializer new];
+    manager.responseSerializer.acceptableContentTypes = [RSSParser acceptableContentTypes];
+
+    NSString *url = @"http://blog.adw.org/feed/";
+
+    [manager GET:url parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [RSSParser parseRSSFeedFromXML:responseObject success:^(NSArray *feedItems) {
+            [self onParseSuccess:feedItems];
+        } failure:^(NSError *error) {
+            [self onParseFailure:error];
+        }];
+    } failure:^(AFHTTPRequestOperation * _Nonnull operation, NSError * _Nonnull error) {
+        [self onParseFailure:error];
     }];
+}
+
+- (void)onParseSuccess:(NSArray *)feedItems {
+    [self setTitle:@"Blog"];
+    [self setDataSource:feedItems];
+    [self.tableView reloadData];
+}
+
+- (void)onParseFailure:(NSError *)error {
+    [self setTitle:@"Error"];
+    NSLog(@"Error: %@",error);
 }
 
 - (void)viewDidUnload
