@@ -9,22 +9,16 @@
 #import <Foundation/Foundation.h>
 #import "RSSItem.h"
 
-@interface RSSParser : NSObject <NSXMLParserDelegate> {
-    RSSItem *currentItem;
-    NSMutableArray *items;
-    NSMutableString *tmpString;
-    void (^successblock)(NSArray *feedItems);
-    void (^failblock)(NSError *error);
-}
+@interface RSSParser : NSObject <NSXMLParserDelegate>
 
-+ (void)parseRSSFeedForURL:(NSString *)url
-            withParameters:(id)parameters
-                   success:(void (^)(NSArray *feedItems))success
-                   failure:(void (^)(NSError *error))failure;
+@property (strong, nonatomic) void (^successBlock)(NSArray *feedItems);
+@property (strong, nonatomic) void (^failBlock)(NSError *error);
 
-- (void)parseRSSFeedForURL:(NSString *)url
-            withParameters:(id)parameters
-                   success:(void (^)(NSArray *feedItems))success
-                   failure:(void (^)(NSError *error))failure;
++ (NSSet *)acceptableContentTypes;
+
+
++ (void)parseRSSFeedFromXML:(NSXMLParser *)data
+                    success:(void (^)(NSArray *feedItems))success
+                    failure:(void (^)(NSError *error))failure;
 
 @end
