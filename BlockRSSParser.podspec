@@ -16,6 +16,4 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '6.0'
 
   s.source_files = 'Classes', 'RSSParser/*.{h,m}'
-
-  s.dependency 'AFNetworking', '~> 2.0'
 end
