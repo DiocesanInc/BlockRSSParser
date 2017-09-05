@@ -105,7 +105,16 @@
             [self.currentParsedItem setTitle:self.currentParsedText];
         } else if ([elementName isEqualToString:@"description"] || [elementName isEqualToString:@"media:description"]) {
             if (![self.currentParsedItem itemDescription] || ![[self.currentParsedItem itemDescription] length]) {
-                [self.currentParsedItem setItemDescription:self.currentParsedText];
+
+                NSLog(@"***description***\n%@", self.currentParsedText);
+                NSString *string = self.currentParsedText;
+                if ([self.currentParsedText hasPrefix:@"<p><iframe"]) {
+                    NSString *noiFrame = [self removeiFramefromString:self.currentParsedText];
+                    if (noiFrame) {
+                        string = noiFrame;
+                    }
+                }
+                [self.currentParsedItem setItemDescription:string];
             }
         } else if ([elementName isEqualToString:@"content:encoded"] || [elementName isEqualToString:@"content"]) {
             [self.currentParsedItem setContent:self.currentParsedText];
@@ -211,5 +220,23 @@
 }
 
 #pragma mark -
+
+-(NSString *)removeiFramefromString:(NSString *)string
+{
+    NSError *error = NULL;
+    NSRegularExpression *regex =
+    [NSRegularExpression regularExpressionWithPattern:@"<p>\\s*<iframe .*<\\/iframe>\\s*<\\/p>"
+                                              options:NSRegularExpressionCaseInsensitive
+                                                error:&error];
+    NSTextCheckingResult *match = [regex firstMatchInString:string
+                                                    options:0
+                                                      range:NSMakeRange(0, string.length)];
+    if (match) {
+        NSRange matchRange = match.range;
+        NSString *newString = [string stringByReplacingCharactersInRange:matchRange withString:@""];
+        return newString;
+    }
+    return nil;
+}
 
 @end
