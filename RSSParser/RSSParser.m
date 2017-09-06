@@ -233,10 +233,8 @@
                                          options:0
                                            range:NSMakeRange(0, string.length)];
     if (match) {
-        NSRange matchRange = match.range;   // entire captured tect
         NSRange captureRange = [match rangeAtIndex:1];
         NSString *urlString = [string substringWithRange:captureRange];
-        NSLog(@"URL Match: %@", urlString);
         return [self getNSURLFromString:urlString];
     }
     return nil;
