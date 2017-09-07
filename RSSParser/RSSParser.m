@@ -109,6 +109,15 @@
             }
         } else if ([elementName isEqualToString:@"content:encoded"] || [elementName isEqualToString:@"content"]) {
             [self.currentParsedItem setContent:self.currentParsedText];
+
+            NSString *string = self.currentParsedText;
+            if ([string hasPrefix:@"<p><!--"] || [string hasPrefix:@"<!--"]) {
+                NSURL *url = [self parseVideoMediaURLfrom:string];
+                if (url) {
+                    [self.currentParsedItem setMediaURL:url];
+                    [self.currentParsedItem setMediaType:Video];
+                }
+            }
         } else if ([elementName isEqualToString:@"link"]) {
             if (![self.currentParsedItem link] || ![[[self.currentParsedItem link] absoluteString] length]) {
                 [self.currentParsedItem setLink:[NSURL URLWithString:self.currentParsedText]];
@@ -210,6 +219,27 @@
     return date;
 }
 
-#pragma mark -
+-(NSURL *)parseVideoMediaURLfrom:(NSString *)string
+{
+    if (!string || string.length == 0) {
+        return nil;
+    }
+    NSError *error = NULL;
+    NSRegularExpression *regex =
+        [NSRegularExpression regularExpressionWithPattern:@"(?:.*<!--\\s*videourl:=)(http.*)\\s*-->"
+                                                  options:NSRegularExpressionCaseInsensitive
+                                                    error:&error];
+    NSTextCheckingResult *match = [regex firstMatchInString:string
+                                         options:0
+                                           range:NSMakeRange(0, string.length)];
+    if (match) {
+        NSRange matchRange = match.range;   // entire captured tect
+        NSRange captureRange = [match rangeAtIndex:1];
+        NSString *urlString = [string substringWithRange:captureRange];
+        NSLog(@"URL Match: %@", urlString);
+        return [self getNSURLFromString:urlString];
+    }
+    return nil;
+}
 
 @end
