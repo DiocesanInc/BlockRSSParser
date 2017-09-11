@@ -111,12 +111,10 @@
             [self.currentParsedItem setContent:self.currentParsedText];
 
             NSString *string = self.currentParsedText;
-            if ([string hasPrefix:@"<p><!--"] || [string hasPrefix:@"<!--"]) {
-                NSURL *url = [self parseVideoMediaURLfrom:string];
-                if (url) {
-                    [self.currentParsedItem setMediaURL:url];
-                    [self.currentParsedItem setMediaType:Video];
-                }
+            NSURL *url = [self parseVideoMediaURLfrom:string];
+            if (url) {
+                [self.currentParsedItem setMediaURL:url];
+                [self.currentParsedItem setMediaType:Video];
             }
         } else if ([elementName isEqualToString:@"link"]) {
             if (![self.currentParsedItem link] || ![[[self.currentParsedItem link] absoluteString] length]) {
