@@ -44,7 +44,7 @@
 #pragma mark parser
 
 + (void)parseRSSFeedFromXML:(NSXMLParser *)data
-                    success:(void (^)(NSArray *feedItems))success
+                    success:(void (^)(NSArray<RSSItem *> *feedItems))success
                     failure:(void (^)(NSError *error))failure
 {
     RSSParser *parser = [RSSParser new];
@@ -53,7 +53,7 @@
 
 
 - (void)parseRSSFeedFromXML:(NSXMLParser *)data
-                   success:(void (^)(NSArray *feedItems))success
+                   success:(void (^)(NSArray<RSSItem *> *feedItems))success
                    failure:(void (^)(NSError *error))failure
 {
     self.successBlock = [success copy];
